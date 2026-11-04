@@ -16,7 +16,7 @@ function reset(){score=0;topY=0;time=0;difficulty=0;enemies=[];helicopters=[];bo
 }state='play';scoreEl.textContent=0;menu.style.display='none';prev=performance.now()}
 function gap(){return 67+Math.random()*20+Math.min(10,difficulty)}
 function maybeAddBreakable(safe,y){
-  if(Math.random()>.42)return;
+  if(Math.random()>.12)return;
   const side=safe.x<W/2?1:-1;
   const off=(62+Math.random()*34)*side;
   const w=Math.max(53,72-Math.min(16,difficulty));
