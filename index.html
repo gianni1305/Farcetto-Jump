@@ -8,21 +8,21 @@ function reset(){score=0;topY=0;time=0;difficulty=0;enemies=[];bonus=[];effects=
 function gap(){return 65+Math.random()*21+Math.min(14,difficulty*2)}
 function makePlatform(y,near){
  const w=Math.max(53,78-Math.min(24,difficulty*2))+Math.random()*7;
- const x=Math.max(3,Math.min(W-w-3,near+(Math.random()-.5)*Math.min(W*.58,100+difficulty*6)));
- const roll=Math.random(),moveChance=Math.min(.34,.08+difficulty*.023),breakChance=Math.min(.28,.035+difficulty*.023),vanishChance=Math.min(.19,Math.max(0,difficulty-2)*.019);
+ const x=Math.max(3,Math.min(W-w-3,near+(Math.random()-.5)*Math.min(W*.58,100+Math.min(18,difficulty)*6)));
+ const roll=Math.random(),moveChance=Math.min(.3,.08+difficulty*.014),breakChance=Math.min(.19,.035+difficulty*.012),vanishChance=Math.min(.14,Math.max(0,difficulty-2)*.009);
  let t=0;if(roll<moveChance)t=1;else if(roll<moveChance+breakChance)t=2;else if(roll<moveChance+breakChance+vanishChance)t=3;
- const p={x,y,w,h:13,t,speed:t===1?(Math.random()<.5?-1:1)*(0.6+difficulty*.13):0,broken:false,spring:t===0&&Math.random()<.055,fade:0};
+ const p={x,y,w,h:13,t,speed:t===1?(Math.random()<.5?-1:1)*(0.6+Math.min(16,difficulty)*.13):0,broken:false,spring:t===0&&Math.random()<.055,fade:0};
  if(t===0&&Math.random()<.035){bonus.push({x:p.x+p.w/2,y:p.y-23,type:Math.random()<.35?'shield':'jet',used:false})}
- if(topY>600&&Math.random()<Math.min(.045,difficulty*.006)&&enemies.every(e=>Math.abs(e.y-y)>250))enemies.push({x:Math.random()*Math.max(1,W-45),y:y-48,vx:(Math.random()<.5?-1:1)*(.6+difficulty*.12),r:19});
+ if(topY>600&&Math.random()<Math.min(.045,difficulty*.006)&&enemies.every(e=>Math.abs(e.y-y)>250))enemies.push({x:Math.random()*Math.max(1,W-45),y:y-48,vx:(Math.random()<.5?-1:1)*(.6+Math.min(18,difficulty)*.12),r:19});
  return p;
 }
 function end(){if(score>0){ranking.push({score,date:new Date().toLocaleDateString('fr-FR')});ranking.sort((a,b)=>b.score-a.score);ranking=ranking.slice(0,5);try{localStorage.setItem('farcettoTop5',JSON.stringify(ranking))}catch(e){}board()}back.style.display='block';state='dead';if(score>best){best=score;bestEl.textContent='★ '+best;try{localStorage.setItem('farcettoBest',best)}catch(e){}}msg.innerHTML='Partie terminée !<br>Score : '+score+'<br>Record : '+best;btn.textContent='REJOUER';menu.style.display='flex'}
-function home(){state='menu';menu.style.display='flex';msg.innerHTML='Grimpe le plus haut possible !<br>Les plateformes deviennent plus difficiles.<br>🚀 Jetpack · 🛡️ Bouclier · Ressorts<br>Évite les monstres !';btn.textContent='JOUER';back.style.display='none';board()}back.onclick=home;document.getElementById('homeBtn').onclick=home;btn.onclick=()=>{if(state==='paused'){state='play';menu.style.display='none';prev=performance.now()}else{reset();back.style.display='none'}};pause.onclick=()=>{if(state==='play'){state='paused';msg.textContent='Partie en pause';btn.textContent='REPRENDRE';back.style.display='block';menu.style.display='flex'}else if(state==='paused'){state='play';menu.style.display='none';prev=performance.now()}};
+function home(){state='menu';menu.style.display='flex';msg.innerHTML='Grimpe sans limite de niveau !<br>La difficulté augmente en altitude.<br>🚀 Jetpack · 🛡️ Bouclier · Ressorts<br>Évite les monstres !';btn.textContent='JOUER';back.style.display='none';board()}back.onclick=home;document.getElementById('homeBtn').onclick=home;btn.onclick=()=>{if(state==='paused'){state='play';menu.style.display='none';prev=performance.now()}else{reset();back.style.display='none'}};pause.onclick=()=>{if(state==='play'){state='paused';msg.textContent='Partie en pause';btn.textContent='REPRENDRE';back.style.display='block';menu.style.display='flex'}else if(state==='paused'){state='play';menu.style.display='none';prev=performance.now()}};
 function press(id,v){const el=document.getElementById(id);el.addEventListener('pointerdown',e=>{e.preventDefault();dir=v;el.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,()=>{if(dir===v)dir=0}))}press('left',-1);press('right',1);
 addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight',' ','a','d'].includes(e.key))e.preventDefault();keys[e.key]=true;if(e.key===' '&&state==='menu')reset()});addEventListener('keyup',e=>keys[e.key]=false);
 function update(dt){
  if(state!=='play')return;
- time+=dt;difficulty=Math.min(12,Math.floor(score/115));
+ time+=dt;difficulty=Math.floor(score/115);
  const move=dir||((keys.ArrowLeft||keys.a)?-1:0)||((keys.ArrowRight||keys.d)?1:0);
  player.x+=move*5.4*dt;if(player.x>W)player.x=-player.w;if(player.x+player.w<0)player.x=W;
  const oldBottom=player.y+player.h;
@@ -58,10 +58,11 @@ function update(dt){
  platforms=platforms.filter(p=>p.y<H+40&&!p.broken);
  bonus=bonus.filter(b=>!b.used&&b.y<H+50);
  enemies=enemies.filter(e=>!e.dead&&e.y<H+60);
- let highest=Math.min(...platforms.map(p=>p.y));
+ let anchor=platforms.length?platforms.reduce((a,b)=>a.y<b.y?a:b):{x:Math.max(3,Math.min(W-78,player.x)),y:H*.42-50};
+ let highest=anchor.y;
  while(highest>-140){
-  const anchor=platforms.reduce((a,b)=>a.y<b.y?a:b);
-  highest-=gap();platforms.push(makePlatform(highest,anchor.x))
+  highest-=gap();const fresh=makePlatform(highest,anchor.x);
+  platforms.push(fresh);anchor=fresh;
  }
  if(player.y>H+60)end();
 }
@@ -69,7 +70,7 @@ function update(dt){
 function round(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
 function draw(){
  const gradient=ctx.createLinearGradient(0,0,0,H);
- if(difficulty>=8){gradient.addColorStop(0,'#24112d');gradient.addColorStop(1,'#5a2450')}
+ if(difficulty>=8){const cycle=Math.floor(difficulty/8)%3;const hues=[310,255,185];const h=hues[cycle];gradient.addColorStop(0,'hsl('+h+' 45% 13%)');gradient.addColorStop(1,'hsl('+h+' 42% 27%)')}
  else if(difficulty>=4){gradient.addColorStop(0,'#132848');gradient.addColorStop(1,'#2a4560')}
  else{gradient.addColorStop(0,'#0a1931');gradient.addColorStop(1,'#163756')}
  ctx.fillStyle=gradient;ctx.fillRect(0,0,W,H);
