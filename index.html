@@ -22,7 +22,7 @@ const shareFeedback=document.getElementById('shareFeedback');
 function shareText(){
  const current=state==='dead'?score:Math.max(score,0);
  const record=Math.max(best,...ranking.map(x=>x.score),0);
- return '🎮 Farcetto Jump !\\n🏆 Mon score : '+current+' points\\n⭐ Mon record : '+record+' points\\nTu peux me battre ? 😏\\n'+SHARE_URL;
+ return '🎮 Farcetto Jump !\n🏆 Mon score : '+current+' points\n⭐ Mon record : '+record+' points\nTu peux me battre ? 😏\n'+SHARE_URL;
 }
 function showShareFeedback(t){shareFeedback.textContent=t;}
 document.getElementById('shareBtn').onclick=async()=>{
